@@ -71,21 +71,15 @@ func ViewAllList(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddToList(w http.ResponseWriter, r *http.Request) {
+	defer http.Redirect(w, r, "/", http.StatusSeeOther)
 	list := GetList()
-	if r.Method != http.MethodPost {
-		http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
-		return
-	}
-
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Ошибка обработки формы", http.StatusBadRequest)
-		return
-	}
-
 	name := r.FormValue("taskName")
 	description := r.FormValue("description")
-
+	for _, v := range list {
+		if v.Name == name && v.Description == description {
+			return
+		}
+	}
 	if name == "" || description == "" {
 		http.Error(w, "Заполните все поля", http.StatusBadRequest)
 		return
@@ -94,7 +88,6 @@ func AddToList(w http.ResponseWriter, r *http.Request) {
 	task := newTask(name, description)
 	list = append(list, task)
 	addToFile(list)
-	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func DeleteElement(w http.ResponseWriter, r *http.Request) {
