@@ -1,0 +1,5 @@
+{
+"port": ":8080",
+"todolist": "ToDoList.json",
+"templateFile": "tamplates\\home_page.html"
+}

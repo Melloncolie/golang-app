@@ -3,117 +3,143 @@ package task
 import (
 	"encoding/json"
 	"fmt"
+	"golang-app/config"
 	"net/http"
 	"os"
 	"time"
 )
 
+type DataTask struct {
+	Tasks    ToDolist
+	EditTask *Task
+}
 type Task struct {
-	Name        string
-	Description string
-	Isdone      bool
-	Time_start  time.Time
-	Time_end    time.Time
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Isdone      bool      `json:"isdone"`
+	Time_start  time.Time `json:"time_start"`
+	Time_end    time.Time `json:"time_end"`
 }
 
 type ToDolist []Task
 
-func GetList() ToDolist {
-	jsonData, err := os.ReadFile("ToDoList.json")
+func (list *ToDolist) isInList(task Task) bool {
+	for _, v := range *list {
+		if v.Name == task.Name && v.Description == task.Description {
+			fmt.Println("Задача уже существует")
+			return true
+		}
+	}
+	return false
+}
+func (list *ToDolist) GetList() {
+	var con config.Config
+	con.LoadConfig()
+	jsonData, err := os.ReadFile(con.Todolist)
 	if err != nil {
 		panic(err)
 	}
-	var list ToDolist
 	err = json.Unmarshal(jsonData, &list)
 	if err != nil {
 		panic(err)
 	}
-	return list
 }
 
-func addToFile(list ToDolist) {
+func (list *ToDolist) addToFile() {
+	var con config.Config
+	con.LoadConfig()
 	jsonData, err := json.Marshal(list)
 	if err != nil {
 		panic(err)
 	}
-	err = os.WriteFile("ToDoList.json", jsonData, 0644)
+	err = os.WriteFile(con.Todolist, jsonData, 0644)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func newTask(Name string, Description string) Task {
-	task := Task{
-		Name:        Name,
-		Description: Description,
-		Isdone:      false,
-		Time_start:  time.Now(),
-		Time_end:    time.Time{},
-	}
-	return task
+func (task *Task) newTask(Name string, Description string) {
+	task.Name = Name
+	task.Description = Description
+	task.Isdone = false
+	task.Time_start = time.Now()
+	task.Time_end = time.Time{}
 }
 
-func ViewAllList(w http.ResponseWriter, r *http.Request) {
-	list := GetList()
-	AllList := ""
-	for i, v := range list {
-		AllList += fmt.Sprintf("Здача %d \nИмя: %s \nОписание: %s \nНачато %d-%02d-%02d %02d:%02d \n", i+1,
-			v.Name, v.Description,
-			v.Time_start.Year(), v.Time_start.Month(), v.Time_start.Day(), v.Time_start.Hour(), v.Time_start.Minute())
-		if v.Isdone {
-			AllList += fmt.Sprintf("Выполненно %d-%02d-%02d %02d:%02d\n",
-				v.Time_end.Year(), v.Time_end.Month(), v.Time_end.Day(), v.Time_end.Hour(), v.Time_end.Minute())
-		} else {
-			AllList += "Не выполненно\n"
-		}
-	}
-	fmt.Fprintf(w, AllList)
-}
-
-func AddToList(w http.ResponseWriter, r *http.Request) {
+func (list *ToDolist) AddToList(w http.ResponseWriter, r *http.Request) {
 	defer http.Redirect(w, r, "/", http.StatusSeeOther)
-	list := GetList()
+	list.GetList()
 	name := r.FormValue("taskName")
 	description := r.FormValue("description")
-	for _, v := range list {
-		if v.Name == name && v.Description == description {
-			return
-		}
-	}
+
 	if name == "" || description == "" {
+		fmt.Println("Заполнены не все поля")
 		http.Error(w, "Заполните все поля", http.StatusBadRequest)
 		return
 	}
 
-	task := newTask(name, description)
-	list = append(list, task)
-	addToFile(list)
+	var task Task
+	task.newTask(name, description)
+	if list.isInList(task) {
+		return
+	}
+	*list = append(*list, task)
+	list.addToFile()
+	fmt.Println("Задача ", task, " добавленна в список")
 }
 
-func DeleteElement(w http.ResponseWriter, r *http.Request) {
+func (list *ToDolist) DeleteElement(w http.ResponseWriter, r *http.Request) {
 	defer http.Redirect(w, r, "/", http.StatusSeeOther)
-	list := GetList()
+	list.GetList()
 	name := r.FormValue("taskName")
-	for i, v := range list {
+	for i, v := range *list {
 		if v.Name == name {
-			list = append(list[:i], list[i+1:]...)
-			addToFile(list)
+			*list = append((*list)[:i], (*list)[i+1:]...)
+			list.addToFile()
+			fmt.Println("Задача ", v, " удалена")
 			return
 		}
 	}
 
 }
 
-func TaskDone(w http.ResponseWriter, r *http.Request) {
+func (list *ToDolist) TaskDone(w http.ResponseWriter, r *http.Request) {
 	defer http.Redirect(w, r, "/", http.StatusSeeOther)
-	list := GetList()
+	list.GetList()
 	name := r.FormValue("taskName")
-	for i, v := range list {
+	for i, v := range *list {
 		if v.Name == name {
-			list[i].Isdone = true
-			list[i].Time_end = time.Now()
-			addToFile(list)
+			(*list)[i].Isdone = true
+			(*list)[i].Time_end = time.Now()
+			list.addToFile()
+			fmt.Println("Задача ", v, " отмечена выполненой")
 			return
 		}
+	}
+}
+func (list *ToDolist) TaskEdit(w http.ResponseWriter, r *http.Request) {
+	defer http.Redirect(w, r, "/", http.StatusSeeOther)
+	list.GetList()
+	oldName := r.FormValue("oldName")
+	newName := r.FormValue("newName")
+	newDescription := r.FormValue("description")
+	var task Task
+	task.newTask(newName, newDescription)
+	if list.isInList(task) {
+		return
+	}
+	for i, v := range *list {
+		if v.Name == oldName {
+			if newName != "" {
+				(*list)[i].Name = newName
+			}
+			if newDescription != "" {
+				(*list)[i].Description = newDescription
+			}
+			list.addToFile()
+			fmt.Println("Задача", v, "отредактирована")
+			break
+		}
+
 	}
 }
