@@ -114,6 +114,7 @@ func (Uslist *UserList) Reg(w http.ResponseWriter, r *http.Request) {
 		user.newUser(login, password, email)
 		*Uslist = append(*Uslist, user)
 		user.addToFile()
+		fmt.Println("Аккаунт ", user, " успешно зарегистрирован")
 		return
 	}
 	http.Redirect(w, r, "/reg", http.StatusSeeOther)
@@ -128,8 +129,10 @@ func (Uslist *UserList) Exit(w http.ResponseWriter, r *http.Request) {
 		if v.Success {
 			(*Uslist)[i].Success = false
 			(*Uslist)[i].addToFile()
+			fmt.Println("Выход из аккаунта ", v)
 		}
 	}
+
 }
 func (Uslist *UserList) Log_in(w http.ResponseWriter, r *http.Request) {
 	defer http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -143,9 +146,11 @@ func (Uslist *UserList) Log_in(w http.ResponseWriter, r *http.Request) {
 			Tlist := v.List
 			Tlist.AddToFile()
 			(*Uslist)[i].addToFile()
+			fmt.Println("Вход в аккаунт ", v)
 			return
 		}
 	}
+	fmt.Println("Неверный логин или пароль")
 	http.Redirect(w, r, "/log", http.StatusSeeOther)
 }
 

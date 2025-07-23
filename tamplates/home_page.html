@@ -44,12 +44,12 @@
             gap: 8px; 
             align-items: center; 
         }
-        .header 
+
+        .user
         {
-            display: flex;
-            justify-content: space-between;
+            display: inline-block;
             align-items: center;
-            padding: 10px;
+            padding: 25px;
         }
         body 
         {
@@ -117,6 +117,7 @@
         }
         input[type="submit"] 
         {
+            min-width: 100px;
             padding: 10px;
             background-color: #28a745;
             color: white;
@@ -129,37 +130,47 @@
         {
             background-color: #218838;
         }
-        
         form 
         {
             text-align: center;
             display: inline-block;
             margin: 0 2px;
         }
-        
         .no-tasks
         {
             text-align: center;
             padding: 20px;
             color: #666;
         }
-        .link {
+        .link
+        {
             text-align: center;
             margin-top: 10px;
         }
-        .link a {
+        .link a
+        {
             color: #007bff;
             text-decoration: none;
+        }
+        .link a:hover
+        {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     
     <div class="container">
-        <div class="header">
-            {{ .User_name.Login }} 
+        <div style="text-align: right;">
+        <div class="user">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"></path>
+                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"></path>
+            </svg>
+            <b>{{ .User_name.Login }}</b>
             <form action="/exit" method="POST" onsubmit="return confirm('Выйти из аккаунта?');">
-                <input type="hidden" name=tr value="1">
+                <input type="hidden" name="tr" value="1">
                 <button type="submit" class="delete-btn">
                     Выйти
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-door-open-fill" viewBox="0 0 16 16">
@@ -167,8 +178,10 @@
                     </svg>
                 </button>
             </form>
+        </div>  
         </div>
-        <h1>Список задач</h1>
+        </p>
+        <h1>Пашок, ты лучший!! Спасибо!!</h1>
         <table>
             <tr>
                 <th>Название</th>
@@ -241,7 +254,7 @@
                 <label for="description">Новое описание:</label>
                 <input type="text" id="description" name="description" placeholder="Введите новое описание">
             </div>
-            <input type="submit" value="Сохранить">
+            <input type="submit" value="Сохранить"> <a href="/"></a><input type="submit" value="Назад">
         </form>
         </div>
 
