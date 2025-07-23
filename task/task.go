@@ -6,14 +6,12 @@ import (
 	"golang-app/config"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
-type DataTask struct {
-	Tasks    ToDolist
-	EditTask *Task
-}
 type Task struct {
+	Id          uint      `json:"id"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Isdone      bool      `json:"isdone"`
@@ -23,8 +21,8 @@ type Task struct {
 
 type ToDolist []Task
 
-func (list *ToDolist) isInList(task Task) bool {
-	for _, v := range *list {
+func (Tlist *ToDolist) isInList(task Task) bool {
+	for _, v := range *Tlist {
 		if v.Name == task.Name && v.Description == task.Description {
 			fmt.Println("Задача уже существует")
 			return true
@@ -32,23 +30,23 @@ func (list *ToDolist) isInList(task Task) bool {
 	}
 	return false
 }
-func (list *ToDolist) GetList() {
+func (Tlist *ToDolist) GetList() {
 	var con config.Config
 	con.LoadConfig()
 	jsonData, err := os.ReadFile(con.Todolist)
 	if err != nil {
 		panic(err)
 	}
-	err = json.Unmarshal(jsonData, &list)
+	err = json.Unmarshal(jsonData, &Tlist)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (list *ToDolist) addToFile() {
+func (Tlist *ToDolist) AddToFile() {
 	var con config.Config
 	con.LoadConfig()
-	jsonData, err := json.Marshal(list)
+	jsonData, err := json.Marshal(Tlist)
 	if err != nil {
 		panic(err)
 	}
@@ -58,7 +56,23 @@ func (list *ToDolist) addToFile() {
 	}
 }
 
+func (Tlist *ToDolist) getId() uint {
+	for ID := 0; ID < len(*Tlist); ID++ {
+		for i, v := range *Tlist {
+			if v.Id == uint(ID) {
+				break
+			} else if i == len(*Tlist)-1 {
+				return uint(ID)
+			}
+		}
+	}
+	return uint(len(*Tlist))
+}
 func (task *Task) newTask(Name string, Description string) {
+	var list ToDolist
+	list.GetList()
+	ID := list.getId()
+	task.Id = ID
 	task.Name = Name
 	task.Description = Description
 	task.Isdone = false
@@ -66,36 +80,31 @@ func (task *Task) newTask(Name string, Description string) {
 	task.Time_end = time.Time{}
 }
 
-func (list *ToDolist) AddToList(w http.ResponseWriter, r *http.Request) {
-	defer http.Redirect(w, r, "/", http.StatusSeeOther)
-	list.GetList()
+func (Tlist *ToDolist) AddToList(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("taskName")
 	description := r.FormValue("description")
-
 	if name == "" || description == "" {
 		fmt.Println("Заполнены не все поля")
 		http.Error(w, "Заполните все поля", http.StatusBadRequest)
 		return
 	}
-
 	var task Task
 	task.newTask(name, description)
-	if list.isInList(task) {
+	if Tlist.isInList(task) {
 		return
 	}
-	*list = append(*list, task)
-	list.addToFile()
+	*Tlist = append(*Tlist, task)
+	Tlist.AddToFile()
 	fmt.Println("Задача ", task, " добавленна в список")
 }
 
-func (list *ToDolist) DeleteElement(w http.ResponseWriter, r *http.Request) {
-	defer http.Redirect(w, r, "/", http.StatusSeeOther)
-	list.GetList()
-	name := r.FormValue("taskName")
-	for i, v := range *list {
-		if v.Name == name {
-			*list = append((*list)[:i], (*list)[i+1:]...)
-			list.addToFile()
+func (Tlist *ToDolist) DeleteElement(w http.ResponseWriter, r *http.Request) {
+
+	taskId, _ := strconv.ParseInt(r.FormValue("taskId"), 10, 10)
+	for i, v := range *Tlist {
+		if v.Id == uint(taskId) {
+			*Tlist = append((*Tlist)[:i], (*Tlist)[i+1:]...)
+			Tlist.AddToFile()
 			fmt.Println("Задача ", v, " удалена")
 			return
 		}
@@ -103,43 +112,40 @@ func (list *ToDolist) DeleteElement(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (list *ToDolist) TaskDone(w http.ResponseWriter, r *http.Request) {
-	defer http.Redirect(w, r, "/", http.StatusSeeOther)
-	list.GetList()
-	name := r.FormValue("taskName")
-	for i, v := range *list {
-		if v.Name == name {
-			(*list)[i].Isdone = true
-			(*list)[i].Time_end = time.Now()
-			list.addToFile()
+func (Tlist *ToDolist) TaskDone(w http.ResponseWriter, r *http.Request) {
+	Tlist.GetList()
+	taskId, _ := strconv.ParseInt(r.FormValue("taskId"), 10, 10)
+	for i, v := range *Tlist {
+		if v.Id == uint(taskId) {
+			(*Tlist)[i].Isdone = true
+			(*Tlist)[i].Time_end = time.Now()
+			Tlist.AddToFile()
 			fmt.Println("Задача ", v, " отмечена выполненой")
 			return
 		}
 	}
 }
-func (list *ToDolist) TaskEdit(w http.ResponseWriter, r *http.Request) {
-	defer http.Redirect(w, r, "/", http.StatusSeeOther)
-	list.GetList()
-	oldName := r.FormValue("oldName")
+func (Tlist *ToDolist) TaskEdit(w http.ResponseWriter, r *http.Request) {
+	Tlist.GetList()
+	oldId, _ := strconv.ParseInt(r.FormValue("oldId"), 10, 10)
 	newName := r.FormValue("newName")
 	newDescription := r.FormValue("description")
 	var task Task
 	task.newTask(newName, newDescription)
-	if list.isInList(task) {
+	if Tlist.isInList(task) {
 		return
 	}
-	for i, v := range *list {
-		if v.Name == oldName {
+	for i, v := range *Tlist {
+		if v.Id == uint(oldId) {
 			if newName != "" {
-				(*list)[i].Name = newName
+				(*Tlist)[i].Name = newName
 			}
 			if newDescription != "" {
-				(*list)[i].Description = newDescription
+				(*Tlist)[i].Description = newDescription
 			}
-			list.addToFile()
+			Tlist.AddToFile()
 			fmt.Println("Задача", v, "отредактирована")
 			break
 		}
-
 	}
 }

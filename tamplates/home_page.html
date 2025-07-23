@@ -2,56 +2,203 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Список задач</title>
     <style>
-        body { font-family: Arial; margin: 20px; }
-        form { max-width: 400px; margin-bottom: 20px; }
-        label { display: block; margin-bottom: 5px; }
-        input, textarea { width: 100%; padding: 8px; margin-bottom: 10px; }
-        button { padding: 16px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-        .delete-btn { background-color: #f44336; color: white; border: none; cursor: pointer; }
-        .edit-btn { background-color: #2196F3; color: white; border: none; cursor: pointer; }
-        .action-buttons { display: flex; gap: 8px; align-items: center; }
-        h2 { margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-        th { background-color: #f2f2f2; }
+        button 
+        {
+            padding: 5px 7px;
+            background-color: #28a745;
+            color: white; border: none;
+            border-radius: 4px;
+            cursor: pointer; 
+        }
+        button:hover
+        {
+            background-color: #218838;
+        }
+        .delete-btn 
+        { 
+            background-color: #f44336; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+        }
+        .delete-btn:hover
+        {
+            background-color: #940a00;
+        }
+        .edit-btn
+        { 
+            background-color: #2196F3; 
+            color: white; border: none; 
+            cursor: pointer; 
+        }
+        .edit-btn:hover
+        {
+            background-color: #006cc4;
+        }
+        .action-buttons
+        { 
+            display: flex; 
+            gap: 8px; 
+            align-items: center; 
+        }
+        .header 
+        {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+        }
+        body 
+        {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+        .container 
+        {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            margin: 20px;
+        }
+        h1, h2
+        {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table 
+        {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td 
+        {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+           
+        }
+        th 
+        {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .form-group 
+        {
+            margin-bottom: 15px;
+            width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        label 
+        {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] 
+        {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        input[type="submit"] 
+        {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        input[type="submit"]:hover 
+        {
+            background-color: #218838;
+        }
+        
+        form 
+        {
+            text-align: center;
+            display: inline-block;
+            margin: 0 2px;
+        }
+        
+        .no-tasks
+        {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .link {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .link a {
+            color: #007bff;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
-    <h1>Добрый день</h1>
-    <h2>Список задач</h2>
-    <table>
-        <tr>
-            <th>Название</th>
-            <th>Описание</th>
-            <th>Время начала</th>
-            <th>Выполнено</th>
-            <th>Время завершения</th>
-            <th>Действие</th>
-        </tr>
-        {{range .Tasks}}
-        <tr>
-            <td>{{.Name}}</td>
-            <td>{{.Description}}</td>
-            <td>{{.Time_start.Format "2006-01-02 15:04:05"}}</td>
-            <td>{{if .Isdone}}Да{{else}}Нет{{end}}</td>
-            <td>{{if .Isdone}}{{.Time_end.Format "2006-01-02 15:04:05"}}{{else}}-{{end}}</td>
-            <td>
+    
+    <div class="container">
+        <div class="header">
+            {{ .User_name.Login }} 
+            <form action="/exit" method="POST" onsubmit="return confirm('Выйти из аккаунта?');">
+                <input type="hidden" name=tr value="1">
+                <button type="submit" class="delete-btn">
+                    Выйти
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-door-open-fill" viewBox="0 0 16 16">
+                        <path d="M1.5 15a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1H13V2.5A1.5 1.5 0 0 0 11.5 1H11V.5a.5.5 0 0 0-.57-.495l-7 1A.5.5 0 0 0 3 1.5V15H1.5zM11 2h.5a.5.5 0 0 1 .5.5V15h-1V2zm-2.5 8c-.276 0-.5-.448-.5-1s.224-1 .5-1 .5.448.5 1-.224 1-.5 1z"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
+        <h1>Список задач</h1>
+        <table>
+            <tr>
+                <th>Название</th>
+                <th>Описание</th>
+                <th>Время начала</th>
+                <th>Время завершения</th>
+                <th>Выполнено</th>
+                <th>Действие</th>
+            </tr>
+            {{range .User_name.List}}
+            <tr>
+                <td>{{.Name}}</td>
+                <td>{{.Description}}</td>
+                <td>{{.Time_start.Format "2006-01-02 15:04:05"}}</td>
+                <td>{{if .Isdone}}{{.Time_end.Format "2006-01-02 15:04:05"}}{{else}}-{{end}}</td>
+                <td>{{if .Isdone}}Да{{else}}Нет{{end}}</td>
+                <td>
                 <div class="action-buttons">
                 {{if not .Isdone}}
                     <form action="/taskdone" method="POST" onsubmit="return confirm('Отметить задачу выполненой?');">
-                        <input type="hidden" name="taskName" value="{{.Name}}">
+                        <input type="hidden" name="taskId" value="{{.Id}}">
                         <button type="submit">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-square-fill" viewBox="0 0 16 16">
                                 <path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm10.03 4.97a.75.75 0 0 1 .011 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.75.75 0 0 1 1.08-.022z"></path>
                             </svg>
                         </button>
                     </form>
-                    <form action="/taskedit">
-                            <a href="/?edit={{.Name}}">
+                    <form>
+                            <a href="/?edit={{.Id}}">
                             <button type="button" class="edit-btn">
-                                
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
                                     <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
                                 </svg>
@@ -62,7 +209,7 @@
                     </form>
                 {{end}}
                     <form action="/deletetask" method="POST" onsubmit="return confirm('Удалить задачу?');">
-                        <input type="hidden" name="taskName" value="{{.Name}}">
+                        <input type="hidden" name="taskId" value="{{.Id}}">
                         <button type="submit" class="delete-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
                                 <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"></path>
@@ -70,33 +217,56 @@
                         </button>
                     </form></td>
                 </div>
-        </tr>
+                </td>
+            </tr>
+            {{else}}
+            <tr>
+                <td colspan="6" class="no-tasks">Задачи отсутствуют</td>
+            </tr>
+            {{end}}
+        </table>
+        
+        
+         
+        {{if .EditTask}}
+        <div class="form-group">
+        <h2>Редактировать задачу</h2>
+        <form action="/taskedit" method="POST">
+            <div class="form-group">
+                <label for="taskName">Новое название:</label>
+                <input type="hidden" name="oldId" value="{{.EditTask.Id}}">
+                <input type="text" id="newName" name="newName" placeholder="Введите новое название">
+            </div>
+            <div class="form-group">
+                <label for="description">Новое описание:</label>
+                <input type="text" id="description" name="description" placeholder="Введите новое описание">
+            </div>
+            <input type="submit" value="Сохранить">
+        </form>
+        </div>
+
         {{else}}
-        <tr>
-            <td colspan="6">Задачи отсутствуют</td>
-        </tr>
+        <div class="form-group">
+        <h2>Добавить новую задачу</h2>
+        <form action="/addtask" method="POST">
+            <div class="form-group">
+                <label for="taskName">Название задачи:</label>
+                <input type="text" id="taskName" name="taskName" placeholder="Введите название задачи" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Описание:</label>
+                <input type="text" id="description" name="description" placeholder="Введите описание задачи" required>
+            </div>
+            <input type="submit" value="Добавить задачу">
+        </form>
+        </div>
         {{end}}
-    </table>
     
-    {{if .EditTask}}
-    <h2>Редактировать задачу</h2>
-    <form method="POST" action="/taskedit">
-        <input type="hidden" name="oldName" value="{{.EditTask.Name}}">
-        <input type="text" id="newName" name="newName" placeholder="Введите название задачи">
-        <textarea id="description" name="description" placeholder="Введите новое описание задачи"></textarea>
-        <button type="submit">Сохранить</button>
-    </form>
-    {{end}}
-
-    <h2>Добавить новую задачу</h2>
-    <form action="/addtask" method="POST">
-        <label for="taskName">Название задачи:</label>
-        <input type="text" id="taskName" name="taskName" placeholder="Введите название задачи" required>
-        <label for="description">Описание:</label>
-        <textarea id="description" name="description" placeholder="Введите описание задачи" required></textarea>
-        <button type="submit">Добавить задачу</button>
-    </form>
-
+    <div class="link">
+            <a href="mailto:nikitamellov@gmail.com?subject=Впорос&amp;">Задать вопрос</a>
+    </div>
     
+    </div>
+
 </body>
 </html>

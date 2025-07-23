@@ -1,5 +1,8 @@
 {
 "port": ":8080",
-"todolist": "ToDoList.json",
-"templateFile": "tamplates\\home_page.html"
+"todolist": "base\\ToDoList.json",
+"userlist": "base\\users.json",
+"home_page": "tamplates\\home_page.html",
+"log_page": "tamplates\\log_page.html",
+"reg_page": "tamplates\\reg_page.html"
 }
